@@ -18,7 +18,10 @@ from html.parser import HTMLParser
 
 wotd_link = "http://www.dictionary.com/wordoftheday"
 wotd_filter = "Definitions for (\w*)\s(.*?\.)"
-fonts = ["Penshurs.ttf", "georgia.ttf"]
+fonts = [
+        "LibreBaskerville-Regular.ttf",
+        "LibreBaskerville-Regular.ttf"
+        ]
 base = "base_wallpaper.png"
 output_filename = "wotd_wallpaper.png"
 
@@ -73,7 +76,7 @@ def html_to_text(html):
     try:
         parser.feed(html)
         parser.close()
-    except:  #HTMLParseError: No good replacement?
+    except:  # HTMLParseError: No good replacement?
         pass
     return parser.get_text()
 
@@ -85,7 +88,7 @@ def get_wotd():
     regex = re.compile(wotd_filter)
     text = html_to_text(res.text)
     match = regex.search(text)
-    
+
     if match:
         word = match.group(1).capitalize().strip()
         definition = match.group(2).strip()
@@ -149,6 +152,5 @@ def set_wallpaper(file):
 
 img = Image.open(base)
 draw = ImageDraw.Draw(img)
-get_wotd() # debug
-#bg = print_wotd(get_wotd())
-#set_wallpaper(bg)
+bg = print_wotd(get_wotd())
+set_wallpaper(bg)
