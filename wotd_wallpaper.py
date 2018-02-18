@@ -79,7 +79,7 @@ def html_to_text(html):
 
 
 def get_wotd():
-    # uses regular expressions to parse dictionary.com input
+    # parse dictionary.com input
     res = requests.get(wotd_link)
     res.raise_for_status()
     regex = re.compile(wotd_filter)
@@ -91,6 +91,9 @@ def get_wotd():
         definition = match.group(2).strip()
         print("\t{}:\n\t{}".format(word, definition))
         return [word, definition]
+    else:
+        print("Error: no word obtained.")
+        return []
 
 
 def print_wotd(wotd):
