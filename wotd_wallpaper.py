@@ -17,14 +17,13 @@ from html.parser import HTMLParser
 
 
 wotd_link = "http://www.dictionary.com/wordoftheday"
-wotd_filter = "Definitions for (\w*)\s(.*)"
+wotd_filter = "Definitions for (\w*)\s(.*?\.)"
 fonts = ["Penshurs.ttf", "georgia.ttf"]
 base = "base_wallpaper.png"
 output_filename = "wotd_wallpaper.png"
 
 
 class _HTMLToText(HTMLParser):
-    # from https://gist.github.com/Crazometer/af441bc7dc7353d41390a59f20f07b51
     def __init__(self):
         HTMLParser.__init__(self)
         self._buf = []
@@ -65,6 +64,7 @@ class _HTMLToText(HTMLParser):
 
 
 def html_to_text(html):
+    # from https://gist.github.com/Crazometer/af441bc7dc7353d41390a59f20f07b51
     """
     Given a piece of HTML, return the plain text it contains.
     This handles entities and char refs, but not javascript and stylesheets.
