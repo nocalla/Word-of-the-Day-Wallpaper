@@ -16,12 +16,12 @@ import textwrap
 from html.parser import HTMLParser
 
 
-wotd_link = "http://www.dictionary.com/wordoftheday"
+wotd_link = "https://www.dictionary.com/e/word-of-the-day/"
 wotd_filter = "Definitions for (\w*)\s(.*?\.)"
 fonts = [
-        "LibreBaskerville-Regular.ttf",
-        "LibreBaskerville-Regular.ttf"
-        ]
+    "LibreBaskerville-Regular.ttf",
+    "LibreBaskerville-Regular.ttf"
+]
 base = "base_wallpaper.png"
 output_filename = "wotd_wallpaper.png"
 
