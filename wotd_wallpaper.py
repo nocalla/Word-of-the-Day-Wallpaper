@@ -17,7 +17,7 @@ from html.parser import HTMLParser
 
 
 wotd_link = "https://www.dictionary.com/e/word-of-the-day/"
-wotd_filter = "Definitions for (\w*)\s(.*?\.)"
+wotd_filter = "\d{4}\s(\w*).*\[(.*)\](.*) See Full Definition"
 fonts = [
     "LibreBaskerville-Regular.ttf",
     "LibreBaskerville-Regular.ttf"
@@ -90,8 +90,10 @@ def get_wotd():
     match = regex.search(text)
 
     if match:
+        print(match) # debug
         word = match.group(1).capitalize().strip()
-        definition = match.group(2).strip()
+        pronunciation = match.group(2).strip() # not currently implemented
+        definition = match.group(3).strip()
         print("\t{}:\n\t{}".format(word, definition))
         return [word, definition]
     else:
