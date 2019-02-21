@@ -67,6 +67,16 @@ class _HTMLToText(HTMLParser):
         return re.sub(r" +", " ", "".join(self._buf))
 
 
+def get_configs():
+    """ Retrieve all configuration parameters."""
+    conf_files = ["wotd_wallpaper.conf", "user_configuration.conf"]
+    if not os.path.exists("bank2ynab.conf"):
+        print("\nError: Can't find configuration file: bank2ynab.conf")
+    config = configparser.RawConfigParser()
+    config.read(conf_files, encoding="utf-8")
+    return config
+
+
 def html_to_text(html):
     # from https://gist.github.com/Crazometer/af441bc7dc7353d41390a59f20f07b51
     """
@@ -180,7 +190,7 @@ def set_wallpaper(file):
         SPI_SETDESKTOPWALLPAPER, 0, f, 3)
     return
 
-
+config = get_configs()
 img = Image.open(base)
 draw = ImageDraw.Draw(img)
 bg = print_wotd(get_wotd())
