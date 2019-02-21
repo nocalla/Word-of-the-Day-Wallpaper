@@ -15,9 +15,11 @@ import textwrap
 
 from html.parser import HTMLParser
 
+from html.entities import name2codepoint
+
 
 wotd_link = "https://www.dictionary.com/e/word-of-the-day/"
-wotd_filter = "\d{4}\s(\w*).*\[(.*)\](.*) See Full Definition"
+wotd_filter = r"\d{4}\s(\w*).*\[(.*)\](.*) See Full Definition"
 fonts = [
     "LibreBaskerville-Regular.ttf",
     "LibreBaskerville-Regular.ttf"
@@ -33,24 +35,24 @@ class _HTMLToText(HTMLParser):
         self.hide_output = False
 
     def handle_starttag(self, tag, attrs):
-        if tag in ('p', 'br') and not self.hide_output:
-            self._buf.append('\n')
-        elif tag in ('script', 'style'):
+        if tag in ("p", "br") and not self.hide_output:
+            self._buf.append("\n")
+        elif tag in ("script", "style"):
             self.hide_output = True
 
     def handle_startendtag(self, tag, attrs):
-        if tag == 'br':
-            self._buf.append('\n')
+        if tag == "br":
+            self._buf.append("\n")
 
     def handle_endtag(self, tag):
-        if tag == 'p':
-            self._buf.append('\n')
-        elif tag in ('script', 'style'):
+        if tag == "p":
+            self._buf.append("\n")
+        elif tag in ("script", "style"):
             self.hide_output = False
 
     def handle_data(self, text):
         if text and not self.hide_output:
-            self._buf.append(re.sub(r'\s+', ' ', text))
+            self._buf.append(re.sub(r"\s+", " ", text))
 
     def handle_entityref(self, name):
         if name in name2codepoint and not self.hide_output:
@@ -59,11 +61,11 @@ class _HTMLToText(HTMLParser):
 
     def handle_charref(self, name):
         if not self.hide_output:
-            n = int(name[1:], 16) if name.startswith('x') else int(name)
+            n = int(name[1:], 16) if name.startswith("x") else int(name)
             self._buf.append(chr(n))
 
     def get_text(self):
-        return re.sub(r' +', ' ', ''.join(self._buf))
+        return re.sub(r" +", " ", "".join(self._buf))
 
 
 def html_to_text(html):
@@ -73,11 +75,8 @@ def html_to_text(html):
     This handles entities and char refs, but not javascript and stylesheets.
     """
     parser = _HTMLToText()
-    try:
-        parser.feed(html)
-        parser.close()
-    except:  # HTMLParseError: No good replacement?
-        pass
+    parser.feed(html)
+    parser.close()
     return parser.get_text()
 
 
@@ -90,12 +89,11 @@ def get_wotd():
     match = regex.search(text)
 
     if match:
-        print(match) # debug
         word = match.group(1).capitalize().strip()
-        pronunciation = match.group(2).strip() # not currently implemented
+        pronunciation = match.group(2).strip()
         definition = match.group(3).strip()
-        print("\t{}:\n\t{}".format(word, definition))
-        return [word, definition]
+        print("\t{}:\n\t{}".format(word, definition, pronunciation))
+        return [word, definition, pronunciation]
     else:
         print("Error: no word obtained.")
         return []
@@ -103,7 +101,7 @@ def get_wotd():
 
 def print_wotd(wotd):
     file = output_filename
-    # only change the file if there's something to change it to
+    # only change the file if there"s something to change it to
     if wotd:
         size = write_msg(wotd[0], fonts[0], 300, 0, 40)
         # offset definition by size of word text box
