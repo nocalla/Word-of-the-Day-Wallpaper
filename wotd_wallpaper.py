@@ -166,6 +166,19 @@ def write_msg(msg, config, conf_section, size):
     pos = (((W-w)/2) + h_offset, ((H-h)/2) + v_offset)
     draw.text(pos, msg, colour, font_obj)
     return [w, h]
+    
+def fix_colour_string(str):
+    """
+    converts string of "(255, 255, 255)" into tuple of same
+    :param str: string version of tuple
+    :return col: usable colour tuple
+    """
+    str = str.replace("(", "")
+    str = str.replace(")", "")
+    str = str.replace(" ", "")
+    l = str.split(",")
+    col = (int(l[0]), int(l[1]), int(l[2]))
+    return col
 
 
 def wrap_string(msg, font, font_size, h_offset, v_offset):
