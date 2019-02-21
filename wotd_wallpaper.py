@@ -12,6 +12,7 @@ import re
 import requests
 import ctypes
 import textwrap
+import configparser
 
 from html.parser import HTMLParser
 from html.entities import name2codepoint
@@ -121,7 +122,7 @@ def get_wotd():
         return []
 
 
-def print_wotd(wotd):
+def print_wotd(wotd, config):
     """
     create output image with text overlaid on background
     :param  wotd: list of data [word, definition, pronunciation]
@@ -130,17 +131,18 @@ def print_wotd(wotd):
     file = output_filename
     # only change the file if there's something to change it to
     if wotd:
-        size = write_msg(wotd[0], fonts[0], 300, 0, 40)
+        size = write_msg(wotd[0], config, "word", [0, 0])
         # offset definition by size of word text box
-        size = write_msg(wotd[1], fonts[1], 45, 0, 20 + size[1])
+        size = write_msg(wotd[1], config, "definition", size)
         img.save(file)
     return file
 
 
-def write_msg(msg, font, font_size, h_offset, v_offset):
+def write_msg(msg, config, conf_section, size):
     """
     write a line of text on the image according to specified parameters
     :param msg: text to write
+    :param conf_section: string name of section in config object to use
     :param font: font to use
     :param font_size: font size
     :param h_offset: horizontal offset of text box from centre of image
@@ -148,8 +150,13 @@ def write_msg(msg, font, font_size, h_offset, v_offset):
     :return [w, h]: width and height of text box
     """
     msg = fix_encoding(msg)
+    font = config.get(conf_section, "Font")
+    font_size = config.getint(conf_section, "Size")
+    h_offset = config.getint(conf_section, "Horizontal offset")
+    v_offset = config.getint(conf_section, "Vertical offset") + size[1]
+    colour = fix_colour_string(config.get(conf_section, "Colour"))
+        
     font_obj = ImageFont.truetype(font, font_size)
-    colour = (255, 255, 255)
     W, H = img.size
     w, h = font_obj.getsize(msg)
     # wrap string if it's too long
@@ -193,5 +200,5 @@ def set_wallpaper(file):
 config = get_configs()
 img = Image.open(base)
 draw = ImageDraw.Draw(img)
-bg = print_wotd(get_wotd())
+bg = print_wotd(get_wotd(), config)
 set_wallpaper(bg)
