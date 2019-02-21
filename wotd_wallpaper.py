@@ -71,9 +71,9 @@ class _HTMLToText(HTMLParser):
 def get_configs():
     """ Retrieve all configuration parameters."""
     conf_files = ["wotd_wallpaper.conf", "user_configuration.conf"]
-    if not os.path.exists("bank2ynab.conf"):
-        print("\nError: Can't find configuration file: bank2ynab.conf")
-    config = configparser.RawConfigParser()
+    if not os.path.exists("wotd_wallpaper.conf"):
+        print("\nError: Can't find configuration file: wotd_wallpaper.conf")
+    config = configparser.ConfigParser()
     config.read(conf_files, encoding="utf-8")
     return config
 
