@@ -115,88 +115,11 @@ def get_wotd():
         word = match.group(1).capitalize().strip()
         pronunciation = match.group(2).strip()
         definition = match.group(3).strip()
-        print("\t{} ({})\n\t{}".format(word, pronunciation, definition))
+        print("{} ({}): {}".format(word, pronunciation, definition))
         return [word, definition, pronunciation]
     else:
         print("Error: no word obtained.")
         return []
-
-
-def print_wotd(wotd, config):
-    """
-    create output image with text overlaid on background
-    :param  wotd: list of data [word, definition, pronunciation]
-    :return file: modified file for use as wallpaper
-    """
-    file = output_filename
-    # only change the file if there's something to change it to
-    if wotd:
-        size = write_msg(wotd[0], config, "word", [0, 0])
-        # offset definition by size of word text box
-        size = write_msg(wotd[1], config, "definition", size)
-        img.save(file)
-    return file
-
-
-def write_msg(msg, config, conf_section, size):
-    """
-    write a line of text on the image according to specified parameters
-    :param msg: text to write
-    :param conf_section: string name of section in config object to use
-    :param font: font to use
-    :param font_size: font size
-    :param h_offset: horizontal offset of text box from centre of image
-    :param v_offset: vertical offset of text box from centre of image
-    :return [w, h]: width and height of text box
-    """
-    msg = fix_encoding(msg)
-    font = config.get(conf_section, "Font")
-    font_size = config.getint(conf_section, "Size")
-    h_offset = config.getint(conf_section, "Horizontal offset")
-    v_offset = config.getint(conf_section, "Vertical offset") + size[1]
-    colour = fix_colour_string(config.get(conf_section, "Colour"))
-        
-    font_obj = ImageFont.truetype(font, font_size)
-    W, H = img.size
-    w, h = font_obj.getsize(msg)
-    # wrap string if it's too long
-    if w >= W:
-        wrap_string(msg, font, font_size, h_offset, v_offset)
-        return
-    pos = (((W-w)/2) + h_offset, ((H-h)/2) + v_offset)
-    draw.text(pos, msg, colour, font_obj)
-    return [w, h]
-    
-def fix_colour_string(str):
-    """
-    converts string of "(255, 255, 255)" into tuple of same
-    :param str: string version of tuple
-    :return col: usable colour tuple
-    """
-    str = str.replace("(", "")
-    str = str.replace(")", "")
-    str = str.replace(" ", "")
-    l = str.split(",")
-    col = (int(l[0]), int(l[1]), int(l[2]))
-    return col
-
-
-def wrap_string(msg, font, font_size, h_offset, v_offset):
-    """
-    split message into lines and wrap text if it's too wide
-    :param msg: text to write
-    :param font: font to use
-    :param font_size: font size
-    :param h_offset: horizontal offset of text box from centre of image
-    :param v_offset: vertical offset of text box from centre of image
-    """
-    wrapped_list = textwrap.wrap(msg, 100)
-    line_space = 60
-    for index, line in enumerate(wrapped_list):
-        h = h_offset
-        v = (index * line_space) + v_offset
-        write_msg(line, font, font_size, h, v)
-    return
 
 
 def set_wallpaper(file):
@@ -209,9 +132,100 @@ def set_wallpaper(file):
     ctypes.windll.user32.SystemParametersInfoW(
         SPI_SETDESKTOPWALLPAPER, 0, f, 3)
     return
+    
+class WallpaperImage:
+    def __init__(self, config_object, wotd, filename):
+        """
+        :param  wotd: list of data [word, definition, pronunciation]
+        :param  img:
+        :param  config:
+        :param  output_filename:
+        """
+        self.img = Image.open(base)
+        self.config = config_object
+        self.wotd = wotd
+        self.output_filename = filename
+    
+    def run(self):
+        """
+        create output image with text overlaid on background
+        :return self.output_filename: filename of our image
+        """
+        wotd = self.wotd
+        # only change the file if there's something to change it to
+        if wotd:
+            sections = ["word", "definition"]  # can add more sections if needed
+            size = [0, 0]  # offset each section by size of previous text box
+            for index, section in enumerate(sections):
+                size = self.write_msg(wotd[index], section, size)
+            self.img.save(self.output_filename)
+        return self.output_filename
+
+
+    def write_msg(self, msg, conf_section, size):
+        """
+        write a line of text on the image according to specified parameters
+        :param msg: text to write
+        :param conf_section: string name of section in config object to use
+        :param font: font to use
+        :param font_size: font size
+        :param h_offset: horizontal offset of text box from centre of image
+        :param v_offset: vertical offset of text box from centre of image
+        :return [w, h]: width and height of text box
+        """
+        msg = fix_encoding(msg)
+        font = self.config.get(conf_section, "Font")
+        font_size = self.config.getint(conf_section, "Size")
+        h_offset = self.config.getint(conf_section, "Horizontal offset")
+        v_offset = self.config.getint(conf_section, "Vertical offset") + size[1]
+        colour = self.fix_colour_string(config.get(conf_section, "Colour"))
+
+        font_obj = ImageFont.truetype(font, font_size)
+        W, H = self.img.size
+        w, h = font_obj.getsize(msg)
+        # wrap string if it's too long
+        if w >= W:
+            wrap_string(msg, font, font_size, h_offset, v_offset)
+            return
+        pos = (((W-w)/2) + h_offset, ((H-h)/2) + v_offset)
+        
+        draw = ImageDraw.Draw(self.img)
+        draw.text(pos, msg, colour, font_obj)
+        return [w, h]
+        
+    def fix_colour_string(self, str):
+        """
+        converts string of "(255, 255, 255)" into tuple of same
+        :param str: string version of tuple
+        :return col: usable colour tuple
+        """
+        str = str.replace("(", "")
+        str = str.replace(")", "")
+        str = str.replace(" ", "")
+        l = str.split(",")
+        col = (int(l[0]), int(l[1]), int(l[2]))
+        return col
+
+
+    def wrap_string(self, msg, font, font_size, h_offset, v_offset):
+        """
+        split message into lines and wrap text if it's too wide
+        :param msg: text to write
+        :param font: font to use
+        :param font_size: font size
+        :param h_offset: horizontal offset of text box from centre of image
+        :param v_offset: vertical offset of text box from centre of image
+        """
+        wrapped_list = textwrap.wrap(msg, 100)
+        line_space = 60
+        for index, line in enumerate(wrapped_list):
+            h = h_offset
+            v = (index * line_space) + v_offset
+            write_msg(line, font, font_size, h, v)
+        return
+
 
 config = get_configs()
-img = Image.open(base)
-draw = ImageDraw.Draw(img)
-bg = print_wotd(get_wotd(), config)
+wotd = get_wotd()
+bg = WallpaperImage(config, wotd, output_filename).run()
 set_wallpaper(bg)
