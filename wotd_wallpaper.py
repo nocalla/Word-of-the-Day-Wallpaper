@@ -202,10 +202,9 @@ class WallpaperImage:
         str = str.replace("(", "")
         str = str.replace(")", "")
         str = str.replace(" ", "")
-        l = str.split(",")
-        col = (int(l[0]), int(l[1]), int(l[2]))
+        string_list = str.split(",")
+        col = (int(string_list[0]), int(string_list[1]), int(string_list[2]))
         return col
-
 
     def wrap_string(self, msg, font, font_size, h_offset, v_offset):
         """
