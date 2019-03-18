@@ -181,7 +181,7 @@ class WallpaperImage:
             
             # wrap string if it's too long
             if w >= W:
-                self.wrap_string(msg, font, font_size, h_offset, v_offset)
+                self.wrap_string(msg, conf_section, current_offset)
                 return
             pos = (((W-w)/2) + h_offset, current_offset)
 
@@ -218,7 +218,7 @@ class WallpaperImage:
         col = (int(string_list[0]), int(string_list[1]), int(string_list[2]))
         return col
 
-    def wrap_string(self, msg, font, font_size, h_offset, v_offset):
+    def wrap_string(self, msg, conf_section, current_offset):
         """
         split message into lines and wrap text if it's too wide
         :param msg: text to write
@@ -230,9 +230,8 @@ class WallpaperImage:
         wrapped_list = textwrap.wrap(msg, 100)
         line_space = 60
         for index, line in enumerate(wrapped_list):
-            h = h_offset
-            v = (index * line_space) + v_offset
-            self.write_msg(line, font, font_size, h, v)
+            v = (index * line_space) + current_offset
+            self.write_msg(line, conf_section, v)
         return
 
 
