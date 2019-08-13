@@ -114,6 +114,7 @@ def get_wotd():
 
     if match:
         word = match.group(1).capitalize().strip()
+        word = " ".join(word.split(" ")[:-1])
         pronunciation = match.group(2).strip()
         definition = match.group(3).strip()
         print("{} ({}): {}".format(word, pronunciation, definition))
