@@ -19,7 +19,7 @@ from html.entities import name2codepoint
 
 
 wotd_link = "https://www.dictionary.com/e/word-of-the-day/"
-wotd_filter = r"\d{4}\s(\w*).*\[(.*)\](.*) See Full Definition"
+wotd_filter = r"\d{4}\s(\w*.*)\[(.*)\](.*) Look it up Get to know dictionary.com Sign up for our Newsletter!"
 fonts = [
     "LibreBaskerville-Regular.ttf",
     "LibreBaskerville-Regular.ttf"
