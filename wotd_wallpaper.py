@@ -96,6 +96,7 @@ def fix_encoding(str):
     :param str: string to be converted
     :return str: utf8-encoded string
     """
+    # not currently used because encoding seems to be ok
     b = str.encode("latin1")  # convert from mistaken latin1 encoding
     str = b.decode("utf8")  # convert from bytes to utf-8        
     return str
