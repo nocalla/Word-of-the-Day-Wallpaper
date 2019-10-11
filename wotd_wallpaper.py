@@ -116,14 +116,29 @@ def get_wotd():
     if match:
         word = match.group(1).capitalize().strip()
         word = " ".join(word.split(" ")[:-1])
+        word, type = process_word_type(word)
         pronunciation = match.group(2).strip()
         definition = match.group(3).strip()
-        print("{} ({}): {}".format(word, pronunciation, definition))
+        print("{} [{}] ({}): {}".format(word, type, pronunciation, definition))
         return [word, pronunciation, definition]
     else:
         print("Error: no word obtained.")
         return []
 
+def process_word_type(input):
+    """
+    searches input for types
+    returns word, type and cuts off any extra
+    """
+    types = ["noun", "adjective", "adverb", "verb", "pronoun"]
+    for type in types:
+        search = " {} ".format(type)
+        if search in input:
+            index = input.find(search)
+            word = input[0:index]
+            return word, type
+    return word, ""
+            
 
 class WallpaperImage:
     def __init__(self, config_object, wotd, filename):
