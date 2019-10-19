@@ -130,9 +130,10 @@ def process_word_type(input):
     searches input for types
     returns word, type and cuts off any extra
     """
-    types = ["noun", "adjective", "adverb", "verb", "pronoun"]
+    types = ["noun", "adjective", "adverb", "verb", "pronoun", "plural"]
+    word = input
     for type in types:
-        search = " {} ".format(type)
+        search = " {}".format(type)
         if search in input:
             index = input.find(search)
             word = input[0:index]
