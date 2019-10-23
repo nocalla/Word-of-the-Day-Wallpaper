@@ -1,2 +1,2 @@
 @echo off
-@py.exe "wotd_background.py" %*
+@py.exe "wotd_wallpaper.py" %*

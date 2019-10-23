@@ -19,7 +19,7 @@ from html.entities import name2codepoint
 
 
 wotd_link = "https://www.dictionary.com/e/word-of-the-day/"
-wotd_filter = r"\d{4}\s(\w*).*\[(.*)\](.*) See Full Definition"
+wotd_filter = r"\d{4}\s(\w*.*)\[(.*)\](.*) Look it up Get to know dictionary.com Sign up for our Newsletter!"
 fonts = [
     "LibreBaskerville-Regular.ttf",
     "LibreBaskerville-Regular.ttf"
@@ -88,15 +88,17 @@ def html_to_text(html):
     parser.feed(html)
     parser.close()
     return parser.get_text()
-    
+
+
 def fix_encoding(str):
     """
     fix character encoding for proper output
     :param str: string to be converted
     :return str: utf8-encoded string
     """
+    # not currently used because encoding seems to be ok
     b = str.encode("latin1")  # convert from mistaken latin1 encoding
-    str = b.decode("utf8")  # convert from bytes to utf-8
+    str = b.decode("utf8")  # convert from bytes to utf-8        
     return str
 
 
@@ -113,90 +115,142 @@ def get_wotd():
 
     if match:
         word = match.group(1).capitalize().strip()
+        word = " ".join(word.split(" ")[:-1])
+        word, type = process_word_type(word)
         pronunciation = match.group(2).strip()
         definition = match.group(3).strip()
-        print("\t{} ({})\n\t{}".format(word, pronunciation, definition))
-        return [word, definition, pronunciation]
+        print("{} [{}] ({}): {}".format(word, type, pronunciation, definition))
+        return [word, pronunciation, definition]
     else:
         print("Error: no word obtained.")
         return []
 
+def process_word_type(input):
+    """
+    searches input for types
+    returns word, type and cuts off any extra
+    """
+    types = ["noun", "adjective", "adverb", "verb", "pronoun", "plural"]
+    word = input
+    for type in types:
+        search = " {}".format(type)
+        if search in input:
+            index = input.find(search)
+            word = input[0:index]
+            return word, type
+    return word, ""
+            
 
-def print_wotd(wotd, config):
-    """
-    create output image with text overlaid on background
-    :param  wotd: list of data [word, definition, pronunciation]
-    :return file: modified file for use as wallpaper
-    """
-    file = output_filename
-    # only change the file if there's something to change it to
-    if wotd:
-        size = write_msg(wotd[0], config, "word", [0, 0])
-        # offset definition by size of word text box
-        size = write_msg(wotd[1], config, "definition", size)
-        img.save(file)
-    return file
+class WallpaperImage:
+    def __init__(self, config_object, wotd, filename):
+        """
+        :param  wotd: list of data [word, definition, pronunciation]
+        :param  img:
+        :param  config:
+        :param  output_filename:
+        """
+        self.img = Image.open(base)
+        self.config = config_object
+        self.wotd = wotd
+        self.output_filename = filename
 
+    def run(self):
+        """
+        create output image with text overlaid on background
+        :return self.output_filename: filename of our image
+        """
+        wotd = self.wotd
+        # only change the file if there's something to change it to
+        if wotd:
+            sections = ["word", "pronunciation", "definition"]  # can add sections if needed
+            current_offset = 0  # offset each section by height of previous text box
+            for index, section in enumerate(sections):
+                current_offset = self.write_msg(wotd[index], section, current_offset)
+            self.img.save(self.output_filename)
+        return self.output_filename
 
-def write_msg(msg, config, conf_section, size):
-    """
-    write a line of text on the image according to specified parameters
-    :param msg: text to write
-    :param conf_section: string name of section in config object to use
-    :param font: font to use
-    :param font_size: font size
-    :param h_offset: horizontal offset of text box from centre of image
-    :param v_offset: vertical offset of text box from centre of image
-    :return [w, h]: width and height of text box
-    """
-    msg = fix_encoding(msg)
-    font = config.get(conf_section, "Font")
-    font_size = config.getint(conf_section, "Size")
-    h_offset = config.getint(conf_section, "Horizontal offset")
-    v_offset = config.getint(conf_section, "Vertical offset") + size[1]
-    colour = fix_colour_string(config.get(conf_section, "Colour"))
-        
-    font_obj = ImageFont.truetype(font, font_size)
-    W, H = img.size
-    w, h = font_obj.getsize(msg)
-    # wrap string if it's too long
-    if w >= W:
-        wrap_string(msg, font, font_size, h_offset, v_offset)
+    def write_msg(self, msg, conf_section, current_offset):
+        """
+        write a line of text on the image according to specified parameters
+        :param msg: text to write
+        :param conf_section: string name of section in config object to use
+        :param font: font to use
+        :param font_size: font size
+        :param h_offset: horizontal offset of text box from centre of image
+        :param v_offset: vertical offset of text box from centre of image
+        :return [w, h]: width and height of text box
+        """
+        #msg = fix_encoding(msg)  # encoding seems to be fine now??
+        font = self.config.get(conf_section, "Font")
+        font_size = self.conf_int(conf_section, "Size")
+        h_offset = self.conf_int(conf_section, "Horizontal offset")
+        v_offset = self.conf_int(conf_section, "Vertical offset")
+        colour = self.fix_colour_string(config.get(conf_section, "Colour"))
+
+        if font_size > 0:
+            font_obj = ImageFont.truetype(font, font_size)
+            W, H = self.img.size
+            w, h = font_obj.getsize(msg)
+            ascent, descent = font_obj.getmetrics()
+            h = ascent + descent + v_offset
+            
+            if current_offset == 0:
+                current_offset = v_offset + ((H-h) / 2)
+            
+            # wrap string if it's too long
+            if w >= W:
+                self.wrap_string(msg, conf_section, current_offset)
+                return
+            pos = (((W-w)/2) + h_offset, current_offset)
+
+            draw = ImageDraw.Draw(self.img)
+            draw.text(pos, msg, colour, font_obj)
+            #draw.rectangle([pos, (pos[0] + w, pos[1] + h)], fill=None, outline=(255,255,255)) # debug
+            current_offset += h
+
+        return current_offset
+
+    def conf_int(self, section, param):
+        """
+        get integer from named config section for named param
+        :param  section: section name in self.config
+        :param  param: parameter in self.config
+        :return integer: integer corresponding to param entry
+        """
+        integer = 0
+        str_param = self.config.get(section, param)
+        if str_param.replace(" ", "") != "":
+            integer = self.config.getint(section, param)
+        return integer
+
+    def fix_colour_string(self, str):
+        """
+        converts string of "(255, 255, 255)" into tuple of same
+        :param str: string version of tuple
+        :return col: usable colour tuple
+        """
+        str = str.replace("(", "")
+        str = str.replace(")", "")
+        str = str.replace(" ", "")
+        string_list = str.split(",")
+        col = (int(string_list[0]), int(string_list[1]), int(string_list[2]))
+        return col
+
+    def wrap_string(self, msg, conf_section, current_offset):
+        """
+        split message into lines and wrap text if it's too wide
+        :param msg: text to write
+        :param font: font to use
+        :param font_size: font size
+        :param h_offset: horizontal offset of text box from centre of image
+        :param v_offset: vertical offset of text box from centre of image
+        """
+        wrapped_list = textwrap.wrap(msg, 100)
+        line_space = 60
+        for index, line in enumerate(wrapped_list):
+            v = (index * line_space) + current_offset
+            self.write_msg(line, conf_section, v)
         return
-    pos = (((W-w)/2) + h_offset, ((H-h)/2) + v_offset)
-    draw.text(pos, msg, colour, font_obj)
-    return [w, h]
-    
-def fix_colour_string(str):
-    """
-    converts string of "(255, 255, 255)" into tuple of same
-    :param str: string version of tuple
-    :return col: usable colour tuple
-    """
-    str = str.replace("(", "")
-    str = str.replace(")", "")
-    str = str.replace(" ", "")
-    l = str.split(",")
-    col = (int(l[0]), int(l[1]), int(l[2]))
-    return col
-
-
-def wrap_string(msg, font, font_size, h_offset, v_offset):
-    """
-    split message into lines and wrap text if it's too wide
-    :param msg: text to write
-    :param font: font to use
-    :param font_size: font size
-    :param h_offset: horizontal offset of text box from centre of image
-    :param v_offset: vertical offset of text box from centre of image
-    """
-    wrapped_list = textwrap.wrap(msg, 100)
-    line_space = 60
-    for index, line in enumerate(wrapped_list):
-        h = h_offset
-        v = (index * line_space) + v_offset
-        write_msg(line, font, font_size, h, v)
-    return
 
 
 def set_wallpaper(file):
@@ -210,8 +264,8 @@ def set_wallpaper(file):
         SPI_SETDESKTOPWALLPAPER, 0, f, 3)
     return
 
+
 config = get_configs()
-img = Image.open(base)
-draw = ImageDraw.Draw(img)
-bg = print_wotd(get_wotd(), config)
+wotd = get_wotd()
+bg = WallpaperImage(config, wotd, output_filename).run()
 set_wallpaper(bg)
