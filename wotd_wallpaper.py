@@ -19,7 +19,7 @@ from html.entities import name2codepoint
 
 
 wotd_link = "https://www.dictionary.com/e/word-of-the-day/"
-wotd_filter = r"\d{4}\s(\w*.*)\[(.*)\](.*) Look it up Get to know dictionary.com Sign up for our Newsletter!"
+wotd_filter = r"\d{4}\s(\w*.*)\[(.*)\](.*) Look it up"
 fonts = [
     "LibreBaskerville-Regular.ttf",
     "LibreBaskerville-Regular.ttf"
@@ -111,6 +111,7 @@ def get_wotd():
     res.raise_for_status()
     regex = re.compile(wotd_filter)
     text = html_to_text(res.text)
+    #print(text) # debug
     match = regex.search(text)
 
     if match:
