@@ -87,7 +87,12 @@ def html_to_text(html):
     parser = _HTMLToText()
     parser.feed(html)
     parser.close()
-    return parser.get_text()
+    text = parser.get_text()
+    text = text.replace("\n\n", " ")
+    text = text.replace("  ", " ")
+    
+    #print(text) # debug
+    return text
 
 
 def fix_encoding(str):
