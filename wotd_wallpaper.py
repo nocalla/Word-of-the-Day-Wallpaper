@@ -199,7 +199,7 @@ class WallpaperImage:
                 current_offset = v_offset + ((H-h) / 2)
             
             # wrap string if it's too long
-            if w >= W:
+            if w >= (0.95*W):
                 self.wrap_string(msg, conf_section, current_offset)
                 return
             pos = (((W-w)/2) + h_offset, current_offset)
