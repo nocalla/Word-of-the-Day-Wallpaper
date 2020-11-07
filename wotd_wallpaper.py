@@ -17,9 +17,6 @@ import configparser
 from html.parser import HTMLParser
 from html.entities import name2codepoint
 
-
-wotd_link = "https://en.wiktionary.org/w/api.php?action=featuredfeed&feed=wotd"
-wotd_filter = r"&lt;span id=&quot;WOTD-rss-title&quot;&gt;(.*)&lt;\/span&gt;&lt;\/a&gt;&lt;\/b&gt; &lt;i&gt;(.*)&lt;\/i&gt;(.*)"
 fonts = [
     "LibreBaskerville-Regular.ttf",
     "LibreBaskerville-Regular.ttf"
@@ -112,22 +109,29 @@ def get_wotd():
     applies regex to Wiktionary.org word of the day page to return data
     :return: [word, type, definition, pronunciation]
     """
+    
+    wotd_link = "https://en.wiktionary.org/w/api.php?action=featuredfeed&feed=wotd"
+    wotd_filter = r"WOTD-rss-title\">(.*?)<\/span></a></b> <i>(.*?)</i>.*?WOTD-rss-description\">(.*?)</li></ol> </div> </td></tr> <tr>"
+    
     res = requests.get(wotd_link)
     res.raise_for_status()
-    regex = re.compile(wotd_filter)
-    text = res.text #html_to_text(res.text)
-    
-    matches = re.finditer(wotd_filter, text)
-    for match in matches:
-        pass    
+    regex = re.compile(wotd_filter, re.DOTALL)
+    text = html_to_text(res.text)
         
+    matches = re.finditer(wotd_filter, text)
+    last_match = []
+    for match in matches:
+        last_match = match
+        
+    match = last_match
     if match:
         word = match.group(1).capitalize().strip()
         pronunciation = "" #match.group(2).strip()
         type = match.group(2).strip()
-        definition = match.group(3).strip()
-        
-                
+        definition = html_to_text(match.group(3))
+        definition = definition.replace(").", ").\n").strip()
+    
+            
         print("{} [{}] ({}): {}".format(word, type, pronunciation, definition))
         return [word, type, pronunciation, definition]
     else:
