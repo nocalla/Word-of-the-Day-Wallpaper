@@ -1,6 +1,6 @@
 # wotd_wallpaper.py
 
-# Gets Dictionary.com's word of the day & definition
+# Gets Wiktionary.org's word of the day & definition
 # Overlays word & definition over wallpaper in folder
 # Saves file
 # Sets file as desktop wallpaper
@@ -18,8 +18,8 @@ from html.parser import HTMLParser
 from html.entities import name2codepoint
 
 
-wotd_link = "https://www.dictionary.com/e/word-of-the-day/"
-wotd_filter = r"\d{4}\s(\w*.*)\[(.*)\]\s*(.*)\s*(.*)"
+wotd_link = "https://en.wiktionary.org/w/api.php?action=featuredfeed&feed=wotd"
+wotd_filter = r"&lt;span id=&quot;WOTD-rss-title&quot;&gt;(.*)&lt;\/span&gt;&lt;\/a&gt;&lt;\/b&gt; &lt;i&gt;(.*)&lt;\/i&gt;(.*)"
 fonts = [
     "LibreBaskerville-Regular.ttf",
     "LibreBaskerville-Regular.ttf"
@@ -78,7 +78,7 @@ def get_configs():
     return config
 
 
-def html_to_text(html):
+def html_to_text(html): # currently disabled in later code
     # from https://gist.github.com/Crazometer/af441bc7dc7353d41390a59f20f07b51
     """
     Given a piece of HTML, return the plain text it contains.
@@ -109,21 +109,25 @@ def fix_encoding(str):
 
 def get_wotd():
     """
-    applies regex to dictionary.com word of the day page to return data
+    applies regex to Wiktionary.org word of the day page to return data
     :return: [word, type, definition, pronunciation]
     """
     res = requests.get(wotd_link)
     res.raise_for_status()
     regex = re.compile(wotd_filter)
-    text = html_to_text(res.text)
-    match = regex.search(text)
-
+    text = res.text #html_to_text(res.text)
+    
+    matches = re.finditer(wotd_filter, text)
+    for match in matches:
+        pass    
+        
     if match:
         word = match.group(1).capitalize().strip()
-        pronunciation = match.group(2).strip()
-        type = match.group(3).strip()
-        definition = match.group(4).strip()
+        pronunciation = "" #match.group(2).strip()
+        type = match.group(2).strip()
+        definition = match.group(3).strip()
         
+                
         print("{} [{}] ({}): {}".format(word, type, pronunciation, definition))
         return [word, type, pronunciation, definition]
     else:
