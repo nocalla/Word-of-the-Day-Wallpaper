@@ -19,7 +19,7 @@ from html.entities import name2codepoint
 
 
 wotd_link = "https://www.dictionary.com/e/word-of-the-day/"
-wotd_filter = r"\d{4}\s(\w*.*)\[(.*)\](.*) Look it up Get to know dictionary.com Sign up for our Newsletter!"
+wotd_filter = r"\d{4}\s(\w*.*)\[(.*)\]\s*(.*)\s*(.*)"
 fonts = [
     "LibreBaskerville-Regular.ttf",
     "LibreBaskerville-Regular.ttf"
@@ -87,7 +87,12 @@ def html_to_text(html):
     parser = _HTMLToText()
     parser.feed(html)
     parser.close()
-    return parser.get_text()
+    text = parser.get_text()
+    text = text.replace("\n\n", " ")
+    text = text.replace("  ", " ")
+    
+    #print(text) # debug
+    return text
 
 
 def fix_encoding(str):
@@ -105,7 +110,7 @@ def fix_encoding(str):
 def get_wotd():
     """
     applies regex to dictionary.com word of the day page to return data
-    :return: [word, definition, pronunciation]
+    :return: [word, type, definition, pronunciation]
     """
     res = requests.get(wotd_link)
     res.raise_for_status()
@@ -115,31 +120,15 @@ def get_wotd():
 
     if match:
         word = match.group(1).capitalize().strip()
-        word = " ".join(word.split(" ")[:-1])
-        word, type = process_word_type(word)
         pronunciation = match.group(2).strip()
-        definition = match.group(3).strip()
+        type = match.group(3).strip()
+        definition = match.group(4).strip()
+        
         print("{} [{}] ({}): {}".format(word, type, pronunciation, definition))
-        return [word, pronunciation, definition]
+        return [word, type, pronunciation, definition]
     else:
         print("Error: no word obtained.")
-        return []
-
-def process_word_type(input):
-    """
-    searches input for types
-    returns word, type and cuts off any extra
-    """
-    types = ["noun", "adjective", "adverb", "verb", "pronoun", "plural"]
-    word = input
-    for type in types:
-        search = " {}".format(type)
-        if search in input:
-            index = input.find(search)
-            word = input[0:index]
-            return word, type
-    return word, ""
-            
+        return []            
 
 class WallpaperImage:
     def __init__(self, config_object, wotd, filename):
@@ -162,7 +151,8 @@ class WallpaperImage:
         wotd = self.wotd
         # only change the file if there's something to change it to
         if wotd:
-            sections = ["word", "pronunciation", "definition"]  # can add sections if needed
+            sections = ["word", "type", 
+                        "pronunciation", "definition"]  # can add sections if needed
             current_offset = 0  # offset each section by height of previous text box
             for index, section in enumerate(sections):
                 current_offset = self.write_msg(wotd[index], section, current_offset)
@@ -198,7 +188,7 @@ class WallpaperImage:
                 current_offset = v_offset + ((H-h) / 2)
             
             # wrap string if it's too long
-            if w >= W:
+            if w >= (0.95*W):
                 self.wrap_string(msg, conf_section, current_offset)
                 return
             pos = (((W-w)/2) + h_offset, current_offset)
