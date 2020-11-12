@@ -111,7 +111,8 @@ def get_wotd():
     """
     
     wotd_link = "https://en.wiktionary.org/w/api.php?action=featuredfeed&feed=wotd"
-    wotd_filter = r"WOTD-rss-title\">(.*?)<\/span></a></b> <i>(.*?)</i>.*?WOTD-rss-description\">(.*?)</li></ol> </div> </td></tr> <tr>"
+    #wotd_filter = r"WOTD-rss-title\">(.*?)<\/span></a></b> <i>(.*?)</i>.*?WOTD-rss-description\">(.*?)</li></ol> </div> </td></tr> <tr>"
+    wotd_filter = r"WOTD-rss-title\">(.*?)<\/span></a></b> <i>(.*?)</i>.*?WOTD-rss-description\">(.*?)</li></ol>"
     
     res = requests.get(wotd_link)
     res.raise_for_status()
