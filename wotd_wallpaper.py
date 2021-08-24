@@ -75,7 +75,7 @@ def get_configs():
     return config
 
 
-def html_to_text(html): # currently disabled in later code
+def html_to_text(html):
     # from https://gist.github.com/Crazometer/af441bc7dc7353d41390a59f20f07b51
     """
     Given a piece of HTML, return the plain text it contains.
@@ -88,7 +88,6 @@ def html_to_text(html): # currently disabled in later code
     text = text.replace("\n\n", " ")
     text = text.replace("  ", " ")
     
-    #print(text) # debug
     return text
 
 
@@ -110,27 +109,29 @@ def get_wotd():
     :return: [word, type, definition, pronunciation]
     """
     
-    wotd_link = "https://en.wiktionary.org/w/api.php?action=featuredfeed&feed=wotd"
+    wotd_link = "https://www.dictionary.com/e/word-of-the-day/"
     #wotd_filter = r"WOTD-rss-title\">(.*?)<\/span></a></b> <i>(.*?)</i>.*?WOTD-rss-description\">(.*?)</li></ol> </div> </td></tr> <tr>"
-    wotd_filter = r"WOTD-rss-title\">(.*?)<\/span></a></b> <i>(.*?)</i>.*?WOTD-rss-description\">(.*?)</li></ol>"
+    #wotd_filter = r"WOTD-rss-title\">(.*?)<\/span></a></b> <i>(.*?)</i>.*?WOTD-rss-description\">(.*?)</li></ol>"
+    wotd_filter= r"\d{2}\, \d{4} (.*) \[(.*)]\s*(.*)\s*(.*)"
     
     res = requests.get(wotd_link)
     res.raise_for_status()
     regex = re.compile(wotd_filter, re.DOTALL)
     text = html_to_text(res.text)
         
-    matches = re.finditer(wotd_filter, text)
-    last_match = []
-    for match in matches:
-        last_match = match
+    match = re.search(wotd_filter, text)
+    # last_match = []
+    # for match in matches:
+        # last_match = match
         
-    match = last_match
+    # match = last_match
     if match:
         word = match.group(1).capitalize().strip()
-        pronunciation = "" #match.group(2).strip()
-        type = match.group(2).strip()
-        definition = html_to_text(match.group(3))
-        definition = definition.replace(").", ").\n").strip()
+        pronunciation = match.group(2).strip()
+        type = match.group(3).strip()
+        definition = match.group(4).strip()
+        #definitions = definitions.strip().split(" (")
+        #definition = definitions[0]        
     
             
         print("{} [{}] ({}): {}".format(word, type, pronunciation, definition))
