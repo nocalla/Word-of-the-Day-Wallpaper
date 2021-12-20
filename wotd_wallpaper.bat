@@ -1,2 +1,2 @@
 @echo off
-@py.exe "wotd_wallpaper.py" %*
+"env\Scripts\python.exe" -m "wotd_wallpaper.py"

@@ -5,22 +5,20 @@
 # Saves file
 # Sets file as desktop wallpaper
 
-#######################################################
-from PIL import Image, ImageFont, ImageDraw
+import configparser
+import ctypes
 import os
 import re
-import requests
-import ctypes
 import textwrap
-import configparser
-
-from html.parser import HTMLParser
 from html.entities import name2codepoint
+from html.parser import HTMLParser
 
-fonts = [
-    "LibreBaskerville-Regular.ttf",
-    "LibreBaskerville-Regular.ttf"
-]
+import requests
+
+#######################################################
+from PIL import Image, ImageDraw, ImageFont
+
+fonts = ["LibreBaskerville-Regular.ttf", "LibreBaskerville-Regular.ttf"]
 base = "base_wallpaper.png"
 output_filename = "wotd_wallpaper.png"
 
@@ -66,7 +64,7 @@ class _HTMLToText(HTMLParser):
 
 
 def get_configs():
-    """ Retrieve all configuration parameters."""
+    """Retrieve all configuration parameters."""
     conf_files = ["wotd_wallpaper.conf", "user_configuration.conf"]
     if not os.path.exists("wotd_wallpaper.conf"):
         print("\nError: Can't find configuration file: wotd_wallpaper.conf")
@@ -87,7 +85,7 @@ def html_to_text(html):
     text = parser.get_text()
     text = text.replace("\n\n", " ")
     text = text.replace("  ", " ")
-    
+
     return text
 
 
@@ -99,7 +97,7 @@ def fix_encoding(str):
     """
     # not currently used because encoding seems to be ok
     b = str.encode("latin1")  # convert from mistaken latin1 encoding
-    str = b.decode("utf8")  # convert from bytes to utf-8        
+    str = b.decode("utf8")  # convert from bytes to utf-8
     return str
 
 
@@ -108,37 +106,35 @@ def get_wotd():
     applies regex to Wiktionary.org word of the day page to return data
     :return: [word, type, definition, pronunciation]
     """
-    
+
     wotd_link = "https://www.dictionary.com/e/word-of-the-day/"
-    #wotd_filter = r"WOTD-rss-title\">(.*?)<\/span></a></b> <i>(.*?)</i>.*?WOTD-rss-description\">(.*?)</li></ol> </div> </td></tr> <tr>"
-    #wotd_filter = r"WOTD-rss-title\">(.*?)<\/span></a></b> <i>(.*?)</i>.*?WOTD-rss-description\">(.*?)</li></ol>"
-    wotd_filter= r"\d{2}\, \d{4} (.*) \[(.*)]\s*(.*)\s*(.*)"
-    
+    wotd_filter = r"\d{2}\, \d{4} (.*) \[(.*)]\s*(.*)\s*(.*)"
+
     res = requests.get(wotd_link)
     res.raise_for_status()
-    regex = re.compile(wotd_filter, re.DOTALL)
+    re.compile(wotd_filter, re.DOTALL)
     text = html_to_text(res.text)
-        
+
     match = re.search(wotd_filter, text)
     # last_match = []
     # for match in matches:
-        # last_match = match
-        
+    # last_match = match
+
     # match = last_match
     if match:
         word = match.group(1).capitalize().strip()
         pronunciation = match.group(2).strip()
         type = match.group(3).strip()
         definition = match.group(4).strip()
-        #definitions = definitions.strip().split(" (")
-        #definition = definitions[0]        
-    
-            
+        # definitions = definitions.strip().split(" (")
+        # definition = definitions[0]
+
         print("{} [{}] ({}): {}".format(word, type, pronunciation, definition))
         return [word, type, pronunciation, definition]
     else:
         print("Error: no word obtained.")
-        return []            
+        return []
+
 
 class WallpaperImage:
     def __init__(self, config_object, wotd, filename):
@@ -161,11 +157,19 @@ class WallpaperImage:
         wotd = self.wotd
         # only change the file if there's something to change it to
         if wotd:
-            sections = ["word", "type", 
-                        "pronunciation", "definition"]  # can add sections if needed
-            current_offset = 0  # offset each section by height of previous text box
+            sections = [
+                "word",
+                "type",
+                "pronunciation",
+                "definition",
+            ]  # can add sections if needed
+            current_offset = (
+                0  # offset each section by height of previous text box
+            )
             for index, section in enumerate(sections):
-                current_offset = self.write_msg(wotd[index], section, current_offset)
+                current_offset = self.write_msg(
+                    wotd[index], section, current_offset
+                )
             self.img.save(self.output_filename)
         return self.output_filename
 
@@ -180,7 +184,7 @@ class WallpaperImage:
         :param v_offset: vertical offset of text box from centre of image
         :return [w, h]: width and height of text box
         """
-        #msg = fix_encoding(msg)  # encoding seems to be fine now??
+        # msg = fix_encoding(msg)  # encoding seems to be fine now??
         font = self.config.get(conf_section, "Font")
         font_size = self.conf_int(conf_section, "Size")
         h_offset = self.conf_int(conf_section, "Horizontal offset")
@@ -193,19 +197,23 @@ class WallpaperImage:
             w, h = font_obj.getsize(msg)
             ascent, descent = font_obj.getmetrics()
             h = ascent + descent + v_offset
-            
+
             if current_offset == 0:
-                current_offset = v_offset + ((H-h) / 2)
-            
+                current_offset = v_offset + ((H - h) / 2)
+
             # wrap string if it's too long
-            if w >= (0.95*W):
+            if w >= (0.95 * W):
                 self.wrap_string(msg, conf_section, current_offset)
                 return
-            pos = (((W-w)/2) + h_offset, current_offset)
+            pos = (((W - w) / 2) + h_offset, current_offset)
 
             draw = ImageDraw.Draw(self.img)
             draw.text(pos, msg, colour, font_obj)
-            #draw.rectangle([pos, (pos[0] + w, pos[1] + h)], fill=None, outline=(255,255,255)) # debug
+            # draw.rectangle(
+            #     [pos, (pos[0] + w, pos[1] + h)],
+            #     fill=None,
+            #     outline=(255, 255, 255),
+            # )  # debug
             current_offset += h
 
         return current_offset
@@ -261,7 +269,8 @@ def set_wallpaper(file):
     f = os.path.abspath(file)
     SPI_SETDESKTOPWALLPAPER = 20
     ctypes.windll.user32.SystemParametersInfoW(
-        SPI_SETDESKTOPWALLPAPER, 0, f, 3)
+        SPI_SETDESKTOPWALLPAPER, 0, f, 3
+    )
     return
 
 

@@ -1,0 +1,8 @@
+.pre-commit-config.yaml
+wotd_wallpaper.png
+user_configuration.conf
+*.ttf
+*.png
+*.bat
+/env
+*.pyc
