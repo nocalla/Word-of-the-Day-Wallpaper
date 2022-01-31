@@ -9,8 +9,8 @@ import re
 
 import requests
 
-from html_converter import html_to_text
-from image_generation import WallpaperImage
+from .html_converter import html_to_text
+from .image_generation import WallpaperImage
 
 
 def get_wotd() -> dict:
@@ -20,9 +20,7 @@ def get_wotd() -> dict:
     """
 
     wotd_link = "https://www.dictionary.com/e/word-of-the-day/"
-    wotd_filter = (
-        r"\d{2}\, \d{4} (.*)\s\[(.*)\]\s\[(.*)\]\s.*\s*(.*)\s*(.*)"
-    )
+    wotd_filter = r"\d{2}\, \d{4} (.*)\s\[(.*)\]\s\[(.*)\]\s.*\s*(.*)\s*(.*)"
 
     res = requests.get(wotd_link)
     res.raise_for_status()
