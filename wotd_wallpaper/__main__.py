@@ -33,8 +33,8 @@ def get_wotd() -> dict:
         # print(match.groups()) # debug
         word = match.group(1).capitalize().strip()
         pronunciation = match.group(2).strip()
-        type = match.group(4).strip()
-        definition = match.group(5).strip()
+        # type = match.group(4).strip()
+        definition = match.group(4).strip()
         # definitions = definitions.strip().split(" (")
         # definition = definitions[0]
 
