@@ -1,9 +1,8 @@
-.pre-commit-config.yaml
-wotd_wallpaper.png
+*.png
 user_configuration.conf
 *.ttf
 *.png
 *.bat
-/env
+/.venv
 *.pyc
 .vscode/*
