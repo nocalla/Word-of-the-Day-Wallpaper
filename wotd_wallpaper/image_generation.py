@@ -70,7 +70,9 @@ class WallpaperImage:
         if font_size > 0:
             font_obj = ImageFont.truetype(font, font_size)
             W, H = self.img.size
-            w, h = font_obj.getsize(msg)
+            text_bb = font_obj.getbbox(msg)
+            w = text_bb[2] - text_bb[0]
+            h = text_bb[3] - text_bb[1]
             ascent, descent = font_obj.getmetrics()
             h = ascent + descent + v_offset
 
