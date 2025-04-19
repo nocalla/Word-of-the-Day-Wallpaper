@@ -9,8 +9,8 @@ import re
 
 import requests
 
-from html_converter import html_to_text
-from image_generation import WallpaperImage
+from .html_converter import html_to_text
+from .image_generation import WallpaperImage
 
 
 def get_wotd() -> dict:
