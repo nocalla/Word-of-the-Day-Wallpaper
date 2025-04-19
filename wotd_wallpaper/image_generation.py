@@ -73,8 +73,8 @@ class WallpaperImage:
             text_bb = font_obj.getbbox(msg)
             w = text_bb[2] - text_bb[0]
             h = text_bb[3] - text_bb[1]
-            ascent, descent = font_obj.getmetrics()
-            h = ascent + descent + v_offset
+            # ascent, descent = font_obj.getmetrics()
+            # h = ascent + descent + v_offset
 
             if current_offset == 0:
                 current_offset = v_offset + ((H - h) / 2)
