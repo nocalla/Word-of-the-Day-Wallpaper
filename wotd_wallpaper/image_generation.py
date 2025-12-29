@@ -1,7 +1,7 @@
 import configparser
 import os
 import textwrap
-from dataclasses import dataclass, field, fields
+from dataclasses import InitVar, dataclass, fields
 
 from get_wotd import WordOfTheDay
 from PIL import Image, ImageDraw, ImageFont
@@ -15,6 +15,36 @@ def get_configs() -> configparser.ConfigParser:
     config = configparser.ConfigParser()
     config.read(conf_files, encoding="utf-8")
     return config
+
+
+def get_conf_int(config, section, param) -> int:
+    """
+    get integer from named config section for named param
+    :param  section: section name in config
+    :param  param: parameter in config
+    :return integer: integer corresponding to param entry
+    """
+    integer = 0
+    str_param = config.get(section, param)
+    if str_param.replace(" ", "") != "":
+        integer = config.getint(section, param)
+    return integer
+
+
+def fix_colour_string(input: str | None) -> tuple[int, int, int]:
+    """
+    converts string of "(255, 255, 255)" into tuple of same
+    :param str: string version of tuple
+    :return col: usable colour tuple
+    """
+    if input is None:
+        return (255, 255, 255)
+    input = input.replace("(", "")
+    input = input.replace(")", "")
+    input = input.replace(" ", "")
+    string_list = input.split(",")
+    col = (int(string_list[0]), int(string_list[1]), int(string_list[2]))
+    return col
 
 
 def generate_image(
@@ -36,7 +66,7 @@ def generate_image(
     # add to image for each section in wotd object
     for parameter in fields(wotd):
         Format = FieldFormat(config=config, section=parameter.name)
-        current_offset = write_msg(
+        current_offset = write_text_to_image(
             img,
             msg=getattr(wotd, parameter.name),
             current_offset=current_offset,
@@ -48,29 +78,33 @@ def generate_image(
 
 @dataclass
 class FieldFormat:
-    config: configparser.ConfigParser
-    section: str = ""
-    font: str = ""
-    font_size: int = field(default_factory=int)
-    h_offset: int = field(default_factory=int)
-    v_offset: int = field(default_factory=int)
-    colour: tuple[int, int, int] = field(default_factory=tuple)
+    """
+    Dataclass to hold formatting parameters for each field in the WordOfTheDay dataclass.
+    :param config: configparser object with configuration data
+    :param section: section name in config corresponding to field
+    """
 
-    def __post_init__(self) -> None:
-        self.font = self.config.get(self.section, "Font")
-        self.font_size = get_conf_int(self.config, self.section, "Size")
-        self.h_offset = get_conf_int(
-            self.config, self.section, "Horizontal offset"
-        )
-        self.v_offset = get_conf_int(
-            self.config, self.section, "Vertical offset"
-        )
-        self.colour = fix_colour_string(
-            self.config.get(self.section, "Colour")
-        )
+    config: InitVar[configparser.ConfigParser]
+    section: InitVar[str] = ""
+
+    def __post_init__(self, config, section) -> None:
+        """
+        Initialize the FieldFormat object.
+
+        :param config: configparser object with configuration data
+        :type config: configparser.ConfigParser
+        :param section: section name in config corresponding to field
+        :type section: str
+        """
+        self.wotd_parameter = section
+        self.font = config.get(section, "Font")
+        self.font_size = get_conf_int(config, section, "Size")
+        self.h_offset = get_conf_int(config, section, "Horizontal offset")
+        self.v_offset = get_conf_int(config, section, "Vertical offset")
+        self.colour = fix_colour_string(config.get(section, "Colour"))
 
 
-def write_msg(
+def write_text_to_image(
     img, msg: str, Format: FieldFormat, current_offset: float
 ) -> float:
     """
@@ -111,34 +145,6 @@ def write_msg(
     return current_offset
 
 
-def get_conf_int(config, section, param) -> int:
-    """
-    get integer from named config section for named param
-    :param  section: section name in config
-    :param  param: parameter in config
-    :return integer: integer corresponding to param entry
-    """
-    integer = 0
-    str_param = config.get(section, param)
-    if str_param.replace(" ", "") != "":
-        integer = config.getint(section, param)
-    return integer
-
-
-def fix_colour_string(str) -> tuple[int, int, int]:
-    """
-    converts string of "(255, 255, 255)" into tuple of same
-    :param str: string version of tuple
-    :return col: usable colour tuple
-    """
-    str = str.replace("(", "")
-    str = str.replace(")", "")
-    str = str.replace(" ", "")
-    string_list = str.split(",")
-    col = (int(string_list[0]), int(string_list[1]), int(string_list[2]))
-    return col
-
-
 def wrap_string(img, msg: str, Format: FieldFormat, current_offset) -> None:
     """
     split message into lines and wrap text if it's too wide
@@ -151,5 +157,5 @@ def wrap_string(img, msg: str, Format: FieldFormat, current_offset) -> None:
     line_space = 60
     for index, line in enumerate(wrapped_list):
         v = (index * line_space) + current_offset
-        write_msg(img, line, Format, v)
+        write_text_to_image(img, line, Format, v)
     return
