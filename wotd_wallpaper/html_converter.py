@@ -4,7 +4,7 @@ from html.parser import HTMLParser
 
 
 class _HTMLToText(HTMLParser):
-    def __init__(self):
+    def __init__(self) -> None:
         HTMLParser.__init__(self)
         self._buf = []
         self.hide_output = False
@@ -43,7 +43,7 @@ class _HTMLToText(HTMLParser):
         return re.sub(r" +", " ", "".join(self._buf))
 
 
-def html_to_text(html):
+def html_to_text(html) -> str:
     # from https://gist.github.com/Crazometer/af441bc7dc7353d41390a59f20f07b51
     """
     Given a piece of HTML, return the plain text it contains.
