@@ -1,5 +1,6 @@
 import configparser
 import os
+from pathlib import Path
 
 
 def get_configs() -> configparser.ConfigParser:
@@ -12,7 +13,9 @@ def get_configs() -> configparser.ConfigParser:
     return config
 
 
-def get_conf_int(config, section, param) -> int:
+def get_conf_int(
+    config: configparser.ConfigParser, section: str, param: str
+) -> int:
     """
     get integer from named config section for named param
     :param  section: section name in config
@@ -26,6 +29,22 @@ def get_conf_int(config, section, param) -> int:
     return integer
 
 
+def get_conf_font(
+    config: configparser.ConfigParser, section: str, param: str
+) -> Path:
+    """
+    get font path from named config section for named param
+    :param  section: section name in config
+    :param  param: parameter in config
+    :return Path: Path to font file
+    """
+    font_path = Path()
+    str_param = config.get(section, param)
+    if str_param.replace(" ", "") != "":
+        font_path = Path("assets", str_param)
+    return font_path
+
+
 def fix_colour_string(input: str) -> tuple[int, ...]:
     """
     converts string of "(255, 255, 255)" into tuple of same
@@ -37,4 +56,6 @@ def fix_colour_string(input: str) -> tuple[int, ...]:
     # split by commas and convert to integers (clamp to 255 max)
     string_list = input.split(",")
     col = tuple(min(int(x), 255) for x in string_list[:3])
+    if len(col) < 3:
+        col = (0, 0, 0)  # default to black if invalid
     return col

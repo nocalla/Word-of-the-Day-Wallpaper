@@ -2,9 +2,10 @@ import configparser
 import textwrap
 from dataclasses import InitVar, dataclass, fields
 
-from config_functions import fix_colour_string, get_conf_int
-from get_wotd import WordOfTheDay
 from PIL import Image, ImageDraw, ImageFont
+
+from config_functions import fix_colour_string, get_conf_font, get_conf_int
+from get_wotd import WordOfTheDay
 
 
 def generate_image(
@@ -57,7 +58,7 @@ class FieldFormat:
         :type section: str
         """
         self.wotd_parameter = section
-        self.font = config.get(section, "Font")
+        self.font = get_conf_font(config, section, "Font")
         self.font_size = get_conf_int(config, section, "Size")
         self.h_offset = get_conf_int(config, section, "Horizontal offset")
         self.v_offset = get_conf_int(config, section, "Vertical offset")

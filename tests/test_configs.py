@@ -1,32 +1,58 @@
-from src.config_functions import fix_colour_string
+import configparser
+
+import pytest
+
+from src.config_functions import fix_colour_string, get_conf_int
 
 
-def test_get_configs_valid() -> None:
+@pytest.fixture
+def test_config() -> configparser.ConfigParser:
     """
-    Test that configuration file search and load creates a ConfigParser object with the correct format.
+    Fixture to provide a ConfigParser object for testing.
     """
-    assert 1 == 2  # Placeholder for actual test implementation
+    conf_files = ["test_config.conf"]
+    config = configparser.ConfigParser()
+    config.read(conf_files, encoding="utf-8")
+    return config
 
 
-def test_get_configs_user_pref_overwrite() -> None:
-    """
-    Test that user preferences override default configurations.
-    """
-    assert 1 == 2  # Placeholder for actual test implementation
+# def test_get_configs_valid(test_config: configparser.ConfigParser) -> None:
+#     """
+#     Test that configuration file search and load creates a ConfigParser object with the correct format.
+#     """
+#     assert 1 == 2  # Placeholder for actual test implementation
 
 
-def test_get_conf_int_valid() -> None:
+# def test_get_configs_user_pref_overwrite(
+#     test_config: configparser.ConfigParser,
+# ) -> None:
+#     """
+#     Test that user preferences override default configurations.
+#     """
+#     assert 1 == 2  # Placeholder for actual test implementation
+
+
+def test_get_conf_int_valid(test_config: configparser.ConfigParser) -> None:
     """
     Test retrieval of integer configuration parameters where valid integer.
     """
-    assert 1 == 2  # Placeholder for actual test implementation
+    expected_result = 300
+    test_result = get_conf_int(test_config, "test_section", "Size")
+    assert expected_result == test_result
 
 
-def test_get_conf_int_invalid() -> None:
-    """
-    Test retrieval of integer configuration parameters where invalid integer.
-    """
-    assert 1 == 2  # Placeholder for actual test implementation
+# def test_get_conf_int_invalid(test_config: configparser.ConfigParser) -> None:
+#     """
+#     Test retrieval of integer configuration parameters where invalid integer.
+#     """
+#     assert 1 == 2  # Placeholder for actual test implementation
+
+
+# def test_get_conf_font_valid(test_config: configparser.ConfigParser) -> None:
+#     """
+#     Test retrieval of font path configuration parameters where valid font path.
+#     """
+#     assert 1 == 2  # Placeholder for actual test implementation
 
 
 def test_fix_colour_string_valid() -> None:
@@ -61,7 +87,7 @@ def test_fix_colour_string_too_few_values() -> None:
     Test conversion of invalid colour string to tuple.
     """
     input_str = "(255, 0)"
-    expected_output = (255, 0, 0)
+    expected_output = (0, 0, 0)
     assert fix_colour_string(input_str) == expected_output
 
 
@@ -80,4 +106,6 @@ def test_fix_colour_string_too_large_values() -> None:
     """
     input_str = "(-255, 0, 1028)"
     expected_output = (255, 0, 255)
+    assert fix_colour_string(input_str) == expected_output
+    assert fix_colour_string(input_str) == expected_output
     assert fix_colour_string(input_str) == expected_output
