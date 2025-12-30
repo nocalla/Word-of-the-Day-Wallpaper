@@ -1,21 +1,17 @@
 import pytest
 
+from src.__main__ import WOTD_FILTER
 from src.get_wotd import WordOfTheDay, parse_wotd_data
-from src.html_converter import html_to_text
-
-# todo: get the regex importing from main file
-WOTD_FILTER = r"\d{2}\, \d{4} (.*)\s\[(.*)\]\s(.*)\s(.*)\s.*\s(.*)\s.*\s(.*)"
 
 
 @pytest.fixture
 def request_html_as_text() -> str:
     with open(
-        r"C:\Users\Niall\Development\Programs\python\projects\wotd_wallpaper\test\test_response.html",
+        r"tests/test_response_text.txt",
         "r",
         encoding="utf-8",
     ) as f:
-        html_content = f.read()
-        text = html_to_text(html_content)
+        text = f.read()
     return text
 
 
