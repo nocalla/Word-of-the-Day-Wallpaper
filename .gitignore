@@ -8,4 +8,3 @@ __pycache__/
 output/*
 .python-version
 .pytest*
-.coverage
