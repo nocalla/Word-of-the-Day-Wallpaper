@@ -9,9 +9,11 @@ from .html_converter import _HTMLToText
 @dataclass
 class WordOfTheDay:
     word: str
+    pronunciation: str
     category: str
     definition: str
-    pronunciation: str
+    explanation: str
+    example: str
 
 
 def html_to_text(html) -> str:
@@ -53,14 +55,11 @@ def parse_wotd_data(text: str, regex_filter: str) -> WordOfTheDay:
     if not match:
         raise Exception("Error: no word data matching regex found.")
 
-    word = match.group(1).capitalize().strip()
-    pronunciation = match.group(2).strip()
-    category = match.group(4).strip()
-    definition = match.group(5).strip()
-
     return WordOfTheDay(
-        word=word,
-        category=category,
-        definition=definition,
-        pronunciation=pronunciation,
+        word=match.group(1).capitalize().strip(),
+        pronunciation=match.group(2).strip(),
+        category=match.group(3).strip(),
+        definition=match.group(4).strip(),
+        explanation=match.group(5).strip(),
+        example=match.group(6).strip(),
     )

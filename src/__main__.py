@@ -4,11 +4,10 @@
 # Sets file as desktop wallpaper
 
 
+from config_functions import get_configs
 from get_wotd import get_data, parse_wotd_data
 from image_generation import generate_image
 from set_wallpaper import set_wallpaper
-
-from config_functions import get_configs
 
 WOTD_LINK = "https://www.dictionary.com/word-of-the-day/"
 WOTD_FILTER = r"\d{2}\, \d{4} (.*)\s\[(.*)\]\s\[(.*)\]\s.*\s*(.*)\s*(.*)"
