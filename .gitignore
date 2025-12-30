@@ -6,5 +6,4 @@ assets/*
 __pycache__/
 .vscode/*
 output/*
-uv.lock
 .python-version
