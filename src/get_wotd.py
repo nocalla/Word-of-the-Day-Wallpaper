@@ -2,7 +2,8 @@ import re
 from dataclasses import dataclass
 
 import requests
-from html_converter import html_to_text
+
+from .html_converter import _HTMLToText
 
 
 @dataclass
@@ -13,6 +14,22 @@ class WordOfTheDay:
     pronunciation: str
 
 
+def html_to_text(html) -> str:
+    # from https://gist.github.com/Crazometer/af441bc7dc7353d41390a59f20f07b51
+    """
+    Given a piece of HTML, return the plain text it contains.
+    This handles entities and char refs, but not javascript and stylesheets.
+    """
+    parser = _HTMLToText()
+    parser.feed(html)
+    parser.close()
+    text = parser.get_text()
+    text = text.replace("\n\n", " ")
+    text = text.replace("  ", " ")
+
+    return text
+
+
 def get_data(source: str) -> str:
     """
     retrieves html data from source link
@@ -20,8 +37,6 @@ def get_data(source: str) -> str:
     """
     data = requests.get(source)
     data.raise_for_status()
-    with open("debug_wotd.html", "w", encoding="utf-8") as f:
-        f.write(data.text)
     return html_to_text(data.text)
 
 
