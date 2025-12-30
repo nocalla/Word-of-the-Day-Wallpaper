@@ -41,3 +41,19 @@ class _HTMLToText(HTMLParser):
 
     def get_text(self) -> str:
         return re.sub(r" +", " ", "".join(self._buf))
+
+
+def html_to_text(html) -> str:
+    # from https://gist.github.com/Crazometer/af441bc7dc7353d41390a59f20f07b51
+    """
+    Given a piece of HTML, return the plain text it contains.
+    This handles entities and char refs, but not javascript and stylesheets.
+    """
+    parser = _HTMLToText()
+    parser.feed(html)
+    parser.close()
+    text = parser.get_text()
+    text = text.replace("\n\n", " ")
+    text = text.replace("  ", " ")
+
+    return text
