@@ -26,17 +26,15 @@ def get_conf_int(config, section, param) -> int:
     return integer
 
 
-def fix_colour_string(input: str | None) -> tuple[int, int, int]:
+def fix_colour_string(input: str) -> tuple[int, ...]:
     """
     converts string of "(255, 255, 255)" into tuple of same
     :param str: string version of tuple
     :return col: usable colour tuple
     """
-    if input is None:
-        return (255, 255, 255)
-    input = input.replace("(", "")
-    input = input.replace(")", "")
-    input = input.replace(" ", "")
+    # remove non-alphanumeric characters except commas
+    input = "".join([char for char in input if char.isdigit() or char == ","])
+    # split by commas and convert to integers (clamp to 255 max)
     string_list = input.split(",")
-    col = (int(string_list[0]), int(string_list[1]), int(string_list[2]))
+    col = tuple(min(int(x), 255) for x in string_list[:3])
     return col

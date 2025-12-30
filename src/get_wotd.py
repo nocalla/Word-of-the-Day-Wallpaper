@@ -2,7 +2,6 @@ import re
 from dataclasses import dataclass
 
 import requests
-
 from html_converter import html_to_text
 
 
@@ -21,6 +20,8 @@ def get_data(source: str) -> str:
     """
     data = requests.get(source)
     data.raise_for_status()
+    with open("debug_wotd.html", "w", encoding="utf-8") as f:
+        f.write(data.text)
     return html_to_text(data.text)
 
 
