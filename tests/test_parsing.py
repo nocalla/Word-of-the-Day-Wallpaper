@@ -1,7 +1,9 @@
 import pytest
 
-from src.get_wotd import WordOfTheDay, html_to_text, parse_wotd_data
+from src.get_wotd import WordOfTheDay, parse_wotd_data
+from src.html_converter import html_to_text
 
+# todo: get the regex importing from main file
 WOTD_FILTER = r"\d{2}\, \d{4} (.*)\s\[(.*)\]\s(.*)\s(.*)\s.*\s(.*)\s.*\s(.*)"
 
 
