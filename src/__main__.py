@@ -9,7 +9,6 @@ from image_generation import generate_image
 from set_wallpaper import set_wallpaper
 
 WOTD_LINK = "https://www.dictionary.com/word-of-the-day/"
-WOTD_FILTER = r"\d{2}\, \d{4} (.*)\s\[(.*)\]\s(.*)\s(.*)\s.*\s(.*)\s.*\s(.*)"
 OUTPUT_PATH = "output/wotd_wallpaper.png"
 BASE_IMAGE_PATH = "assets/base_wallpaper.png"
 
@@ -17,7 +16,7 @@ BASE_IMAGE_PATH = "assets/base_wallpaper.png"
 if __name__ == "__main__":
     config = get_configs()
     website_data = get_data(WOTD_LINK)
-    wotd = parse_wotd_data(website_data, WOTD_FILTER)
+    wotd = parse_wotd_data(website_data)
 
     bg = generate_image(
         wotd=wotd,
