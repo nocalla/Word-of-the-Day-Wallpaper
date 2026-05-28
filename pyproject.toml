@@ -18,7 +18,7 @@ dev = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = ["--import-mode=importlib","--cov=src --cov-report html",]
-pythonpath = ["src"]
+pythonpath = [".", "src"]
 
 [tool.coverage.run]
 omit = [".venv/*"]

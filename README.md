@@ -7,4 +7,9 @@
 - Sets file as desktop wallpaper
 
 ## Compatibility
-Only works on Windows
+
+| Platform | Status |
+|----------|--------|
+| Windows | Supported (via `SystemParametersInfoW`) |
+| Linux (GNOME, Cinnamon, MATE) | Supported (via `gsettings`) |
+| macOS | Supported (via `osascript`) |
