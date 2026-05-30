@@ -86,13 +86,13 @@ def write_text_to_image(
         h = ascent + descent + Format.v_offset
 
         if current_offset == 0:
-            current_offset = Format.v_offset + ((H - h) / 2)
+            current_offset = Format.v_offset + round((H - h) / 2)
 
         # wrap string if it's too long
         if w >= (0.95 * W):
             wrap_string(img, msg, Format, current_offset)
             return 0
-        pos = (((W - w) / 2) + Format.h_offset, current_offset)
+        pos = (round((W - w) / 2) + Format.h_offset, round(current_offset))
 
         draw = ImageDraw.Draw(img)
         draw.text(pos, msg, Format.colour, font_obj)
