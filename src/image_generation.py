@@ -7,6 +7,8 @@ from PIL import Image, ImageDraw, ImageFont
 from config_functions import fix_colour_string, get_conf_font, get_conf_int
 from get_wotd import WordOfTheDay
 
+_SUPERSAMPLE = 2
+
 
 def generate_image(
     wotd: WordOfTheDay,
@@ -22,17 +24,24 @@ def generate_image(
     :return: path to generated image
     """
     img = Image.open(base_image_path)
+    W0, H0 = img.size
+    img = img.resize((W0 * _SUPERSAMPLE, H0 * _SUPERSAMPLE), Image.LANCZOS)
     # offset each section by height of previous text box
     current_offset = 0
     # add to image for each section in wotd object
     for parameter in fields(wotd):
         Format = FieldFormat(config=config, section=parameter.name)
+        Format.font_size *= _SUPERSAMPLE
+        Format.h_offset *= _SUPERSAMPLE
+        Format.v_offset *= _SUPERSAMPLE
         current_offset = write_text_to_image(
             img,
             msg=getattr(wotd, parameter.name),
             current_offset=current_offset,
             Format=Format,
+            scale=_SUPERSAMPLE,
         )
+    img = img.resize((W0, H0), Image.LANCZOS)
     img.save(output_filename)
     return output_filename
 
@@ -66,7 +75,7 @@ class FieldFormat:
 
 
 def write_text_to_image(
-    img, msg: str, Format: FieldFormat, current_offset: float
+    img, msg: str, Format: FieldFormat, current_offset: float, scale: int = 1
 ) -> float:
     """
     write a line of text on the image according to specified parameters
@@ -90,7 +99,7 @@ def write_text_to_image(
 
         # wrap string if it's too long
         if w >= (0.95 * W):
-            wrap_string(img, msg, Format, current_offset)
+            wrap_string(img, msg, Format, current_offset, scale=scale)
             return 0
         pos = (round((W - w) / 2) + Format.h_offset, round(current_offset))
 
@@ -106,17 +115,18 @@ def write_text_to_image(
     return current_offset
 
 
-def wrap_string(img, msg: str, Format: FieldFormat, current_offset) -> None:
+def wrap_string(img, msg: str, Format: FieldFormat, current_offset, scale: int = 1) -> None:
     """
     split message into lines and wrap text if it's too wide
     :param msg: text to write
     :param Format: FieldFormat object with formatting parameters
     :param current_offset: current vertical offset from top of image
+    :param scale: supersampling factor (line spacing scales accordingly)
     :return: None
     """
     wrapped_list = textwrap.wrap(msg, 100)
-    line_space = 60
+    line_space = 60 * scale
     for index, line in enumerate(wrapped_list):
         v = (index * line_space) + current_offset
-        write_text_to_image(img, line, Format, v)
+        write_text_to_image(img, line, Format, v, scale=scale)
     return
