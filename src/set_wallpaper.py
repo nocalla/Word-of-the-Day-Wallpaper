@@ -38,8 +38,8 @@ def _set_wallpaper_windows(path: str) -> None:
 
 def _set_wallpaper_linux(path: str) -> None:
     """
-    Set the desktop wallpaper on Linux via gsettings, selecting the correct schema
-    based on the running desktop environment.
+    Set the desktop wallpaper on Linux, using plasma-apply-wallpaperimage on KDE and
+    gsettings (with the schema for the running desktop environment) otherwise.
 
     :param path: absolute path to the image file
     """
@@ -51,6 +51,8 @@ def _set_wallpaper_linux(path: str) -> None:
         _gsettings_set("org.cinnamon.desktop.background", "picture-uri", uri)
     elif any(de in desktop for de in ("gnome", "unity", "budgie")):
         _gsettings_set("org.gnome.desktop.background", "picture-uri", uri)
+    elif "kde" in desktop or "plasma" in session:
+        subprocess.run(["plasma-apply-wallpaperimage", path], check=True)
     elif "mate" in desktop or "mate" in session:
         _gsettings_set("org.mate.background", "picture-filename", path)
     else:

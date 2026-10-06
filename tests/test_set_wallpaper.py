@@ -95,6 +95,15 @@ class TestSetWallpaperLinux:
             _set_wallpaper_linux(ABS_PATH)
         mock_gs.assert_called_once_with("org.mate.background", "picture-filename", ABS_PATH)
 
+    @patch("src.set_wallpaper.subprocess.run")
+    @patch("src.set_wallpaper._gsettings_set")
+    def test_kde_uses_plasma_tool(self, mock_gs, mock_run):
+        """Uses plasma-apply-wallpaperimage (not gsettings) when desktop is KDE."""
+        with patch.dict("os.environ", {"XDG_CURRENT_DESKTOP": "KDE", "DESKTOP_SESSION": ""}):
+            _set_wallpaper_linux(ABS_PATH)
+        mock_run.assert_called_once_with(["plasma-apply-wallpaperimage", ABS_PATH], check=True)
+        mock_gs.assert_not_called()
+
     @patch("src.set_wallpaper._gsettings_set")
     def test_unknown_desktop_falls_back_to_gnome(self, mock_gs):
         """Falls back to GNOME schema and logs a warning for unknown desktops."""
