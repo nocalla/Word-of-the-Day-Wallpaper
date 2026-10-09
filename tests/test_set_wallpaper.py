@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from unittest.mock import MagicMock, call, patch
 
@@ -16,32 +17,60 @@ ABS_URI = Path(ABS_PATH).as_uri()
 
 
 class TestSetWallpaperDispatch:
-    """Tests that set_wallpaper dispatches to the correct platform handler."""
+    """set_wallpaper routes to the right platform function with a uniquely named copy."""
 
-    @patch("src.set_wallpaper._set_wallpaper_windows")
-    @patch("src.set_wallpaper.platform.system", return_value="Windows")
-    def test_dispatches_to_windows(self, _mock_system, mock_windows):
-        """Dispatches to Windows handler on Windows."""
-        set_wallpaper(ABS_PATH)
-        mock_windows.assert_called_once_with(ABS_PATH)
+    @pytest.fixture
+    def image(self, tmp_path):
+        img = tmp_path / "wallpaper.png"
+        img.write_bytes(b"png")
+        return img
 
-    @patch("src.set_wallpaper._set_wallpaper_linux")
+    @pytest.mark.parametrize(
+        ("system", "target"),
+        [
+            ("Windows", "_set_wallpaper_windows"),
+            ("Linux", "_set_wallpaper_linux"),
+            ("Darwin", "_set_wallpaper_macos"),
+        ],
+    )
+    def test_dispatches_per_os(self, system, target, image):
+        """Each OS gets its own setter, called with a copy rather than the original path."""
+        with (
+            patch("src.set_wallpaper.platform.system", return_value=system),
+            patch(f"src.set_wallpaper.{target}") as mock_setter,
+        ):
+            set_wallpaper(str(image))
+        mock_setter.assert_called_once()
+        applied = mock_setter.call_args.args[0]
+        assert applied != str(image)
+        assert os.path.basename(applied).startswith("wallpaper_")
+        assert os.path.exists(applied)
+
     @patch("src.set_wallpaper.platform.system", return_value="Linux")
-    def test_dispatches_to_linux(self, _mock_system, mock_linux):
-        """Dispatches to Linux handler on Linux."""
-        set_wallpaper(ABS_PATH)
-        mock_linux.assert_called_once_with(ABS_PATH)
+    @patch("src.set_wallpaper._set_wallpaper_linux")
+    def test_applies_fresh_path_each_run(self, mock_linux, _mock_system, image):
+        """Regression: desktops ignore an unchanged path, so each run must apply a new one."""
+        applied = []
+        for _ in range(2):
+            set_wallpaper(str(image))
+            applied.append(mock_linux.call_args.args[0])
+        assert applied[0] != applied[1]
+        assert str(image) not in applied
+        assert not os.path.exists(applied[0])  # stale copy cleaned up
+        assert os.path.exists(applied[1])
+        assert image.exists()
 
-    @patch("src.set_wallpaper._set_wallpaper_macos")
-    @patch("src.set_wallpaper.platform.system", return_value="Darwin")
-    def test_dispatches_to_macos(self, _mock_system, mock_macos):
-        """Dispatches to macOS handler on Darwin."""
-        set_wallpaper(ABS_PATH)
-        mock_macos.assert_called_once_with(ABS_PATH)
+    @patch("src.set_wallpaper.platform.system", return_value="Linux")
+    @patch("src.set_wallpaper._set_wallpaper_linux", side_effect=RuntimeError("boom"))
+    def test_failed_set_leaves_no_copy(self, _mock_linux, _mock_system, image):
+        """A failing setter does not leave an orphaned copy behind."""
+        with pytest.raises(RuntimeError, match="boom"):
+            set_wallpaper(str(image))
+        assert [p.name for p in image.parent.iterdir()] == ["wallpaper.png"]
 
     @patch("src.set_wallpaper.platform.system", return_value="FreeBSD")
     def test_raises_on_unsupported_os(self, _mock_system):
-        """Raises RuntimeError for unsupported operating systems."""
+        """Raises RuntimeError for an unsupported OS before touching any files."""
         with pytest.raises(RuntimeError, match="Unsupported operating system"):
             set_wallpaper(ABS_PATH)
 

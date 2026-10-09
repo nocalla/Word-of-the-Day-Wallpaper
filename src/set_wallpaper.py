@@ -2,7 +2,9 @@ import ctypes
 import logging
 import os
 import platform
+import shutil
 import subprocess
+import time
 from pathlib import Path
 
 LOGGER = logging.getLogger(__name__)
@@ -12,18 +14,31 @@ def set_wallpaper(file: str) -> None:
     """
     Set the desktop wallpaper to the specified file, detecting the current OS.
 
+    Desktops cache wallpapers by path and ignore an image regenerated in place, so the
+    image is applied via a uniquely named copy; copies from earlier runs are removed.
+
     :param file: path to the image file to set as wallpaper
     """
-    abs_path = os.path.abspath(file)
+    abs_path = Path(os.path.abspath(file))
     system = platform.system()
-    if system == "Windows":
-        _set_wallpaper_windows(abs_path)
-    elif system == "Linux":
-        _set_wallpaper_linux(abs_path)
-    elif system == "Darwin":
-        _set_wallpaper_macos(abs_path)
-    else:
+    setters = {
+        "Windows": _set_wallpaper_windows,
+        "Linux": _set_wallpaper_linux,
+        "Darwin": _set_wallpaper_macos,
+    }
+    if system not in setters:
         raise RuntimeError(f"Unsupported operating system: {system}")
+
+    unique = abs_path.with_name(f"{abs_path.stem}_{time.time_ns()}{abs_path.suffix}")
+    shutil.copyfile(abs_path, unique)
+    try:
+        setters[system](str(unique))
+    except Exception:
+        unique.unlink(missing_ok=True)
+        raise
+    for old in abs_path.parent.glob(f"{abs_path.stem}_*{abs_path.suffix}"):
+        if old != unique:
+            old.unlink(missing_ok=True)
 
 
 def _set_wallpaper_windows(path: str) -> None:
