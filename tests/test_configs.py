@@ -1,4 +1,5 @@
 import configparser
+from pathlib import Path
 
 import pytest
 
@@ -10,9 +11,11 @@ def test_config() -> configparser.ConfigParser:
     """
     Fixture to provide a ConfigParser object for testing.
     """
-    conf_files = ["test_config.conf"]
+    conf_file = Path(__file__).parent / "test_config.conf"
     config = configparser.ConfigParser()
-    config.read(conf_files, encoding="utf-8")
+    # read_file raises if the file is missing, unlike read() which silently skips it
+    with conf_file.open(encoding="utf-8") as f:
+        config.read_file(f)
     return config
 
 
